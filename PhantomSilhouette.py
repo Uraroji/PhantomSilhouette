@@ -22,6 +22,38 @@ def hz_to_spec(hz: int, sr: int, spec_sample: int) -> float:
     """
     return (hz/(sr//2))*spec_sample
 
+def hz_to_erb(hz: int) -> float:
+    """
+    HzをERB尺度に変換する
+
+    Parameters
+    ----------
+    hz: int
+        周波数
+    
+    Returns
+    -------
+    erb: float
+        ERB
+    """
+    return 21.4 * np.log(0.00437 * hz + 1) / np.log(10)
+
+def erb_to_hz(erb: float) -> int:
+    """
+    ERB尺度をHzに変換する
+
+    Parameters
+    ----------
+    erb: float
+        ERB
+    
+    Returns
+    -------
+    erb: float
+        周波数
+    """
+    return int((np.exp(erb / 21.4 * np.log(10))-1) / 0.00437)
+
 def formant_shift(sp: np.ndarray, sr: int, time_skip: int = 10) -> np.ndarray:
     """
     F1・F2フォルマントの上方シフト
@@ -41,6 +73,7 @@ def formant_shift(sp: np.ndarray, sr: int, time_skip: int = 10) -> np.ndarray:
     sp_out: np.ndarray
         F1・F2フォルマントを上方シフトしたスペクトル包絡
     """
+    # FIXME: ERB尺度で変換する
     from_list = []
     to_list = []
     for i in range(0, sp.shape[0], time_skip):
