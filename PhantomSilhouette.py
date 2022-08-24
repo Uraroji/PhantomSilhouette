@@ -1,9 +1,9 @@
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 from skimage.transform import PiecewiseAffineTransform, warp
 
 
-def hz_to_spec(hz: int, sr: int, spec_sample: int) -> float:
+def hz_to_spec(hz: Union[int, np.ndarray], sr: int, spec_sample: int) -> Union[float, np.ndarray]:
     """
     実際の周波数をスペクトログラム(スペクトル包絡)中の座標に変換する
 
@@ -24,7 +24,39 @@ def hz_to_spec(hz: int, sr: int, spec_sample: int) -> float:
     return (hz / (sr // 2)) * spec_sample
 
 
-def formant_shift(sp: np.ndarray, sr: int, time_skip: int = 10) -> np.ndarray:
+def hz_to_erb(hz: Union[int, np.ndarray]) -> Union[float, np.ndarray]:
+    """
+    HzをERB尺度に変換する
+
+    Parameters
+    ----------
+    hz: int
+        周波数
+    
+    Returns
+    -------
+    erb: float
+        ERB
+    """
+    return 21.4 * np.log(0.00437 * hz + 1) / np.log(10)
+
+def erb_to_hz(erb: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    """
+    ERB尺度をHzに変換する
+
+    Parameters
+    ----------
+    erb: float
+        ERB
+    
+    Returns
+    -------
+    erb: float
+        周波数
+    """
+    return (np.exp(erb / 21.4 * np.log(10))-1) / 0.00437
+
+def formant_shift(sp: np.ndarray, sr: int, time_step: int = 10, erb_num: int = 16) -> np.ndarray:
     """
     F1・F2フォルマントの上方シフト
     区分的アフィン変換を用いて、スペクトル包絡のF1,F2の区間を上方へシフト
@@ -35,34 +67,31 @@ def formant_shift(sp: np.ndarray, sr: int, time_skip: int = 10) -> np.ndarray:
         スペクトル包絡
     sr: int
         サンプルレート
-    time_skip: int
+    time_step: int
         区間的アフィン変換に用いる時間方向のメッシュの幅(default: 10)
+    erb_num: int
+        区間的アフィン変換に用いる周波数(ERB)方向のメッシュの数(default: 16)
 
     Returns
     -------
     sp_out: np.ndarray
         F1・F2フォルマントを上方シフトしたスペクトル包絡
     """
-    from_list: np.typing.NDArray = []  # type: ignore
-    to_list: np.typing.NDArray = []  # type: ignore
-    for i in range(0, sp.shape[0], time_skip):
-        from_list += [
-            [0, i],
-            [hz_to_spec(1000, sr, sp.shape[1]), i],
-            [hz_to_spec(1600, sr, sp.shape[1]), i],
-            [sp.shape[1], i],
-        ]
-        to_list += [
-            [0, i],
-            [hz_to_spec(1100, sr, sp.shape[1]), i],
-            [hz_to_spec(1600, sr, sp.shape[1]), i],
-            [sp.shape[1], i],
-        ]
-    from_list = np.array(from_list)
-    to_list = np.array(to_list)
+    x = np.linspace(0, hz_to_erb(sr//2), sp.shape[1]//2**5) 
+    y = interpolate.interp1d(
+        [0, hz_to_erb(1000), hz_to_erb(1600), hz_to_erb(sr//2)], 
+        [0, hz_to_erb(1100), hz_to_erb(1600), hz_to_erb(sr//2)], 
+        kind='linear'
+    )(x)
+    x = hz_to_spec(erb_to_hz(x), sr, sp.shape[1])
+    y = hz_to_spec(erb_to_hz(y), sr, sp.shape[1])
+    r = np.arange(0, sp.shape[1], time_step)
+    form_mat = np.stack([np.tile(x, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1)
+    to_mat = np.stack([np.tile(y, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1)
     tform = PiecewiseAffineTransform()
-    tform.estimate(from_list, to_list)
+    tform.estimate(form_mat, to_mat)
     return warp(sp, tform, output_shape=sp.shape)
+    
 
 
 def low_frequency_suppression(sp: np.ndarray, sr: int) -> np.ndarray:
