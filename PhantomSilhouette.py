@@ -1,6 +1,5 @@
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
-from typing import Union
 from skimage.transform import PiecewiseAffineTransform, warp
 
 
