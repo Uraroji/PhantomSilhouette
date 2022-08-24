@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "phantom_silhouette"
+version = "0.1.0"
+description = "Phantom Silhouette方式の実装"
+authors = ["zukky <34536327+SuzukiDaishi@users.noreply.github.com>"]
+
+[tool.flake8]
+max-line-length = 99
+ignore = "E731"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+scikit-image = "^0.19.3"
+librosa = "^0.9.2"
+pyworld = "^0.3.0"
+numpy = "^1.23.2"
+matplotlib = "^3.5.3"
+ipython = "^8.4.0"
+SoundFile = "^0.10.3"
+
+[tool.poetry.dev-dependencies]
+black = "^22.6.0"
+mypy = "^0.971"
+isort = "^5.10.1"
+flake8 = "^5.0.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
