@@ -1,7 +1,7 @@
 from typing import Tuple, Union
 import numpy as np
 from skimage.transform import PiecewiseAffineTransform, warp
-
+from scipy import interpolate
 
 def hz_to_spec(hz: Union[int, np.ndarray], sr: int, spec_sample: int) -> Union[float, np.ndarray]:
     """
@@ -56,7 +56,10 @@ def erb_to_hz(erb: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     """
     return (np.exp(erb / 21.4 * np.log(10))-1) / 0.00437
 
-def formant_shift(sp: np.ndarray, sr: int, time_step: int = 10, erb_num: int = 16) -> np.ndarray:
+
+tform = PiecewiseAffineTransform()
+
+def formant_shift(sp: np.ndarray, sr: int) -> np.ndarray:
     """
     F1・F2フォルマントの上方シフト
     区分的アフィン変換を用いて、スペクトル包絡のF1,F2の区間を上方へシフト
@@ -67,32 +70,27 @@ def formant_shift(sp: np.ndarray, sr: int, time_step: int = 10, erb_num: int = 1
         スペクトル包絡
     sr: int
         サンプルレート
-    time_step: int
-        区間的アフィン変換に用いる時間方向のメッシュの幅(default: 10)
-    erb_num: int
-        区間的アフィン変換に用いる周波数(ERB)方向のメッシュの数(default: 16)
-
+        
     Returns
     -------
     sp_out: np.ndarray
         F1・F2フォルマントを上方シフトしたスペクトル包絡
     """
-    x = np.linspace(0, hz_to_erb(sr//2), sp.shape[1]//2**5) 
+    global tform
+    x = np.linspace(0, hz_to_erb(sr//2), sp.shape[1]//2**5)
     y = interpolate.interp1d(
-        [0, hz_to_erb(1000), hz_to_erb(1600), hz_to_erb(sr//2)], 
         [0, hz_to_erb(1100), hz_to_erb(1600), hz_to_erb(sr//2)], 
+        [0, hz_to_erb(1000), hz_to_erb(1600), hz_to_erb(sr//2)], 
         kind='linear'
     )(x)
     x = hz_to_spec(erb_to_hz(x), sr, sp.shape[1])
     y = hz_to_spec(erb_to_hz(y), sr, sp.shape[1])
-    r = np.arange(0, sp.shape[1], time_step)
+    r = np.array([0, sp.shape[1]])
     form_mat = np.stack([np.tile(x, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1)
     to_mat = np.stack([np.tile(y, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1)
-    tform = PiecewiseAffineTransform()
     tform.estimate(form_mat, to_mat)
-    return warp(sp, tform, output_shape=sp.shape)
-    
-
+    o = warp(sp, tform, output_shape=sp.shape)
+    return o
 
 def low_frequency_suppression(sp: np.ndarray, sr: int) -> np.ndarray:
     """
