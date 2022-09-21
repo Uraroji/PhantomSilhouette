@@ -4,6 +4,7 @@
 
 ## こんな感じになります(音あり)
 
+https://user-images.githubusercontent.com/34536327/191547222-989b1b77-82d4-4b3e-8bd5-c66bf22e262d.mp4
 
 ## 進捗
 - [x] PhantomSilhouetteの実装
