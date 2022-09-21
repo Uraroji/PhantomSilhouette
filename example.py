@@ -1,30 +1,8 @@
-from typing import List
 import librosa
 import pyworld as pw
 import soundfile as sf
 import numpy as np
 from PhantomSilhouette import phantom_silhouette
-
-
-def pan(wav: List[np.ndarray], right_ratio: float = 0) -> List[np.ndarray]:
-    """
-    パン
-
-    Parameters
-    ----------
-    wav: np.ndarray
-        音声波形
-    right_ratio: float
-        右の音量の割合(-1~1, default 0)
-
-    Returns
-    ----------
-    wav_out: np.ndarray
-        パンした音声
-    """
-    wav[0] = wav[0] * (1 - right_ratio)
-    wav[1] = wav[1] * (1 + right_ratio)
-    return wav
 
 
 def convert(wav_side: np.ndarray, sr: int) -> np.ndarray:
@@ -51,9 +29,7 @@ def convert(wav_side: np.ndarray, sr: int) -> np.ndarray:
 
 
 if __name__ == "__main__":
-    wav, sample_rate = librosa.load("suzuki.wav", mono=False)
-    wav[0] = convert(wav[0], sample_rate)
-    wav[1] = convert(wav[1], sample_rate)
-    wav = pan(wav, right_ratio=0)
+    wav, sr = librosa.load("sample.wav")
+    wav = convert(wav, sr)
     audio_out = wav.transpose()
-    sf.write("out.wav", audio_out, sample_rate, format="WAV", subtype="PCM_16")
+    sf.write("out.wav", audio_out, sr, format="WAV", subtype="PCM_16")

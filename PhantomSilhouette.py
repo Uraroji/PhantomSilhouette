@@ -3,7 +3,8 @@ import numpy as np
 from skimage.transform import PiecewiseAffineTransform, warp
 from scipy import interpolate
 
-def hz_to_spec(hz: Union[int, np.ndarray], sr: int, spec_sample: int) -> Union[float, np.ndarray]:
+
+def hz_to_spec(hz: np.ndarray, sr: int, spec_sample: int) -> np.ndarray:
     """
     実際の周波数をスペクトログラム(スペクトル包絡)中の座標に変換する
 
@@ -32,7 +33,7 @@ def hz_to_erb(hz: Union[int, np.ndarray]) -> Union[float, np.ndarray]:
     ----------
     hz: int
         周波数
-    
+
     Returns
     -------
     erb: float
@@ -40,7 +41,8 @@ def hz_to_erb(hz: Union[int, np.ndarray]) -> Union[float, np.ndarray]:
     """
     return 21.4 * np.log(0.00437 * hz + 1) / np.log(10)
 
-def erb_to_hz(erb: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+
+def erb_to_hz(erb: np.ndarray) -> np.ndarray:
     """
     ERB尺度をHzに変換する
 
@@ -48,16 +50,17 @@ def erb_to_hz(erb: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     ----------
     erb: float
         ERB
-    
+
     Returns
     -------
     erb: float
         周波数
     """
-    return (np.exp(erb / 21.4 * np.log(10))-1) / 0.00437
+    return (np.exp(erb / 21.4 * np.log(10)) - 1) / 0.00437
 
 
 tform = PiecewiseAffineTransform()
+
 
 def formant_shift(sp: np.ndarray, sr: int) -> np.ndarray:
     """
@@ -70,27 +73,33 @@ def formant_shift(sp: np.ndarray, sr: int) -> np.ndarray:
         スペクトル包絡
     sr: int
         サンプルレート
-        
+
     Returns
     -------
     sp_out: np.ndarray
         F1・F2フォルマントを上方シフトしたスペクトル包絡
     """
     global tform
-    x = np.linspace(0, hz_to_erb(sr//2), sp.shape[1]//2**5)
+    x = np.linspace(0, hz_to_erb(sr // 2), sp.shape[1] // 2**5)
     y = interpolate.interp1d(
-        [0, hz_to_erb(1100), hz_to_erb(1600), hz_to_erb(sr//2)], 
-        [0, hz_to_erb(1000), hz_to_erb(1600), hz_to_erb(sr//2)], 
-        kind='linear'
+        [0, hz_to_erb(1100), hz_to_erb(1600), hz_to_erb(sr // 2)],
+        [0, hz_to_erb(1000), hz_to_erb(1600), hz_to_erb(sr // 2)],
+        kind="linear",
     )(x)
-    x = hz_to_spec(erb_to_hz(x), sr, sp.shape[1])
+    x = erb_to_hz(x)
+    x = hz_to_spec(x, sr, sp.shape[1])
     y = hz_to_spec(erb_to_hz(y), sr, sp.shape[1])
-    r = np.array([0, sp.shape[1]])
-    form_mat = np.stack([np.tile(x, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1)
-    to_mat = np.stack([np.tile(y, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1)
+    r = np.array([0, sp.shape[0]])
+    form_mat = np.stack(
+        [np.tile(x, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1
+    )
+    to_mat = np.stack(
+        [np.tile(y, r.shape[0]), np.tile(r, (x.shape[0], 1)).T.reshape(-1)], 1
+    )
     tform.estimate(form_mat, to_mat)
     o = warp(sp, tform, output_shape=sp.shape)
     return o
+
 
 def low_frequency_suppression(sp: np.ndarray, sr: int) -> np.ndarray:
     """
