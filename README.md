@@ -6,6 +6,59 @@
 
 https://user-images.githubusercontent.com/34536327/191547222-989b1b77-82d4-4b3e-8bd5-c66bf22e262d.mp4
 
+## 導入の仕方
+
+このライブラリをインストールします．
+```sh
+pip install git+https://github.com/Uraroji/PhantomSilhouette.git
+```
+
+関連のライブラリをインストールします．
+```sh
+pip install librosa
+pip install SoundFile
+pip install pyworld
+```
+
+Pythonからの簡単な呼び出し方法
+```py
+import librosa
+import pyworld as pw
+import soundfile as sf
+import numpy as np
+from phantomsilhouette import phantom_silhouette
+
+
+def convert(wav_side: np.ndarray, sr: int) -> np.ndarray:
+    """
+    phantom silhouette法で音声の変換
+
+    Parameters
+    ----------
+    wav_side: np.ndarray
+        片方の音声
+    sr: int
+        サンプルレート
+
+    Returns
+    ----------
+    wav_out: np.ndarray
+        変換した音声
+    """
+    wav = wav_side.astype(np.float64)
+    f0, sp, ap = pw.wav2world(wav, sr)
+    f0_out, sp_out = phantom_silhouette(f0, sp, sr)
+    wev_out = pw.synthesize(f0_out, sp_out, ap, sr)
+    return wev_out.astype(np.float32)[:wav.shape[0]]
+
+
+if __name__ == "__main__":
+    wav, sr = librosa.load("sample.wav")
+    wav = convert(wav, sr)
+    audio_out = wav.transpose()
+    sf.write("out.wav", audio_out, sr, format="WAV", subtype="PCM_16")
+```
+
 ## 進捗
 - [x] PhantomSilhouetteの実装
   - [x] 雑音駆動音声の実装
