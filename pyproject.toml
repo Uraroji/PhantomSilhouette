@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "phantom_silhouette"
+name = "PhantomSilhouette"
 version = "0.1.0"
 description = "Phantom Silhouette: convert normal voice to whisper"
 authors = ["zukky <34536327+SuzukiDaishi@users.noreply.github.com>"]
