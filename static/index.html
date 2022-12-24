@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+<title>PhantomSilhouette</title>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">PhantomSilhouette</a>
+        </div>
+    </nav>
+</header>
+<main class="container is-centered">
+    <div class="row text-center justify-content-center">
+        <div class="col-10 mx-4 my-4 box">
+            <p>This api can make whisper voice from normal voice</p>
+            <p>You can use the form at below, or see <a href="/docs">this api document</a></p>
+        </div>
+        <div class="col-10 col-md-6 mx-4 my-4 box">
+            <label for="formFileLg" class="form-label">Click below to select new file...</label>
+            <input accept=".wav" class="form-control form-control-md" id="formFile" type="file">
+        </div>
+        <div class="col-10 col-md-6 mx-4 my-4 box">
+            <button
+            type="button"
+            class="btn btn-primary btn-lg"
+            onclick="uploadFile()"
+            >Make it whisper</button>
+        </div>
+    </div>
+    <div class="row text-center">
+        <h4 id="predicted_result"></h4>
+        <audio controls="controls" src="#" id="predicted_audio" type="audio/wav"></audio>
+    </div>
+</main>
+<footer class="footer mt-4 py-3 bg-light fixed-bottom">
+    <div class="container text-center">
+      <p class="text-muted">&copy; 2022 Uraroji</p>
+      <p class="text-muted">Source: <a href="https://github.com/Uraroji/PhantomSilhouette">Github</a></>
+    </div>
+</footer>
+</body>
+<script>
+async function uploadFile() {
+    const file = document.getElementById('formFile').files[0];
+    if (file == null) {
+        alert('You must select WAV file first!');
+        return;
+    }
+    document.getElementById('predicted_result').innerText = "Processing...";
+    const formData = new FormData();
+    formData.append('file', file);
+    const resp = await fetch ('/predict', {
+        method: 'POST',
+        body: formData
+    });
+    const blob = await resp.blob();
+    const blobUrl = URL.createObjectURL(blob)
+    document.getElementById("predicted_audio").src = blobUrl;
+    document.getElementById('predicted_result').innerText = "Done!";
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</html>
