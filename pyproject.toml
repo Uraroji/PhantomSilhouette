@@ -9,9 +9,11 @@ max-line-length = 99
 ignore = "E731"
 
 [tool.poetry.dependencies]
-python = "^3.7"
-scikit-image = "^0.18.3"
-numpy = "^1.21.6"
+python = "^3.10"
+librosa = "^0.9.2"
+pyworld = "^0.3.2"
+matplotlib = "^3.6.2"
+scikit-image = "^0.19.3"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"
