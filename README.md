@@ -81,3 +81,7 @@ if __name__ == "__main__":
   [https://doi.org/10.1250/ast.42.214](https://doi.org/10.1250/ast.42.214)
 - [2] [実用的なささやき声の生成法:Phantom Silhouette方式とその評価](https://jglobal.jst.go.jp/detail?JGLOBAL_ID=201902255241782790)
 - [3] [実用的なささやき声の生成法:Phantom Silhouette方式の改良](https://jglobal.jst.go.jp/detail?JGLOBAL_ID=202002252470550660)
+- [4] Teruhisa Uchida.  
+  A practical method for generating whispers from singing voices: Application of improved phantom silhouette method.  
+  2023 年 44 巻 3 号 p. 239-246.  
+  [https://www.jstage.jst.go.jp/article/ast/44/3/44_E2249/_article/-char/ja/](https://www.jstage.jst.go.jp/article/ast/44/3/44_E2249/_article/-char/ja/)
